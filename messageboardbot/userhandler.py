@@ -20,7 +20,7 @@ class MessageBoardBot(telepot.helper.UserHandler):
             if msg['text'].startswith('@MessageBoardBot '):
                 handle_command(msg)
             elif msg['text'].startswith('/start'):
-                self.sender.sendMessage("Welcome", parse_mode='markdown', reply_markup=keyboards['start'])
+                self.sender.sendMessage("Welcome", reply_markup=keyboards['start'])
             elif msg['text'] == 'List Channels':
                 keyboard = [['Channel: ' + row[1]] for row in self.app.get_channels()]
                 self.sender.sendMessage("Here's a list of channels, click on one to get more information.", reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
