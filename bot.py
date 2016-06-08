@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import configparser
+
 import telepot
 from telepot.delegate import per_from_id, create_open
 
@@ -7,10 +9,12 @@ from messageboardbot.app import App
 from messageboardbot.userhandler import MessageBoardBot
 
 if __name__ == '__main__':
-  TOKEN_TG = '216237136:AAGb8w2fpkDs2NyaznJ9VNKmBWzPMQWVf60'
+  configfile = configparser.ConfigParser()
+  configfile.read('config.ini')
+  config = configfile['bot']
 
-  app = App('database.db')
-  bot = telepot.DelegatorBot(TOKEN_TG, [
+  app = App(config['DatabaseFile'])
+  bot = telepot.DelegatorBot(config['TelegramToken'], [
       (per_from_id(), create_open(MessageBoardBot, timeout=20, app=app)),
   ])
   print("Listening...")
