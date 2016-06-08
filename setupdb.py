@@ -9,7 +9,18 @@ if __name__ == "__main__":
 		sys.exit()
 	conn = sqlite3.connect(sys.argv[1])
 	c = conn.cursor()
-	c.execute("CREATE TABLE Channels (Channel_ID integer, ChannelName text, ChannelURL text)")
-	c.execute("CREATE TABLE Posts_per_Channel (Post_ID integer, Replyto_ID integer, Channel_ID integer, ContentType text)")
+	c.execute("""CREATE TABLE "Channels" (
+	`Channel_ID`	INTEGER NOT NULL UNIQUE,
+	`ChannelName`	TEXT NOT NULL,
+	`ChannelURL`	TEXT NOT NULL UNIQUE
+)""")
+	c.execute("""CREATE TABLE "Posts_per_Channel" (
+	`Post_ID`	INTEGER NOT NULL UNIQUE,
+	`Replyto_ID`	INTEGER,
+	`Channel_ID`	INTEGER NOT NULL,
+	`ContentType`	TEXT NOT NULL,
+	`Message_ID`	INTEGER NOT NULL UNIQUE,
+	PRIMARY KEY(Post_ID)
+)""")
 	conn.commit()
 	conn.exit()
