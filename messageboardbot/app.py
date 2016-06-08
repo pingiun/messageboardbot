@@ -18,6 +18,15 @@ class App(object):
         conn.close()
         return result
 
+    def _execute(self, query, values=None):
+        conn = sqlite3.connect(self.dbname)
+        c = conn.cursor()
+        if values:
+            c.execute(query, values)
+        else:
+            c.execute(query)
+        conn.close()
+
     def get_channels(self):
         channels = self.cache.get('channels')
         if channels:
@@ -32,4 +41,14 @@ class App(object):
         if channel:
             return channel
         else:
-            return self._select("SELECT * FROM Channels WHERE ChannelName=?", (name,))
+            return self._select("SELECT * FROM Channels WHERE ChannelName = ?", (name,))
+
+    def get_message(self, post_id):
+        postid = self.cache.get('postid_'+postid)
+        if postid:
+            return postid
+        else:
+            return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Post_ID = ?", (postid,))
+
+    def store_post(self, channel_id, content_type, message_id, replyto_id=None):
+        self._execute("INSERT INTO Post_per_Channel VALUES (?, ?, ?, ?, ?)", (None, replyto_id, channel_id, content_type, message_id))
