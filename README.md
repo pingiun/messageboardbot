@@ -12,3 +12,4 @@ Install telepot with `pip install telepot`
 - Actually being able to post posts
 - Replying to posts
 - Making other cool things
+- showing commments in bot
