@@ -28,19 +28,22 @@ class MessageBoardBot(telepot.helper.UserHandler):
         self.on_message = self._router.on_message
     
     def on_nontext(self, msg):
+        content_type, chat_type, chat_id = telepot.glance(msg)
         if self.status == 'posting':
             if content_type == 'photo':
-                postid = self.app.get_post_id()
-                self.bot.sendPhoto(self.chosenchannel[2],msg['photo'][-1]['file_id'], caption = '#p'+str(postid)+'\n'+msg['caption'])
-                sendmsg = self.sender.sendMessage('Your message was posted on the {} board'.format(self.chosenchannel[1]), reply_markup = keyboards['start'])
-                self.app.store_post(postid, self.chosenchannel[0], sendmsg['message_id'], content_type, msg['caption'],file_id = msg['photo'][-1]['file_id'])
-                self.status = 'start'
+                if msg.get('caption'):
+                    self.post_to_channel(msg, 'photo', file_id=msg['photo'][-1]['file_id'])
+                else:
+                    self.sender.sendMessage("Now choose a caption to go with your photo.", reply_markup=keyboards['nocaption'])
+                    self.status = 'choosecaption_photo'
+                    self.file_id = msg['photo'][-1]['file_id']
             elif content_type == 'document':
-                postid = self.app.get_post_id()
-                self.bot.sendDocument(self.chosenchannel[2],msg['document']['file_id'], caption = '#p'+str(postid))
-                sendmsg = self.sender.sendMessage('Your message was posted on the {} board'.format(self.chosenchannel[1]), reply_markup = keyboards['start'])
-                self.app.store_post(postid, self.chosenchannel[0], sendmsg['message_id'], content_type, None,file_id = msg['document']['file_id'])
-                self.status = 'start'
+                if msg.get('caption'):
+                    self.post_to_channel(msg, 'document', file_id=msg['document']['file_id'])
+                else:
+                    self.sender.sendMessage("Now choose a caption to go with your gif.", reply_markup=keyboards['nocaption'])
+                    self.status = 'choosecaption_document'
+                    self.file_id = msg['document']['file_id']
         else:
             self.sender.sendMessage(self.helptext)
 
@@ -61,20 +64,41 @@ class MessageBoardBot(telepot.helper.UserHandler):
         self.sender.sendMessage('What would you like to send to {}?'.format(self.chosenchannel[1]), reply_markup = ReplyKeyboardMarkup(keyboard = [['🤐 Cancel Posting 🤐', 'Main Menu']]))
         self.status = 'posting'
 
+    def post_to_channel(self, msg, content_type='text', file_id=None):
+        postid = self.app.get_post_id()
+        
+        if content_type == 'text':
+            msgtext = msg['text']
+            self.bot.sendMessage(self.chosenchannel[2], "#p{}\n{}".format(postid, msgtext))
+        elif content_type == 'photo':
+            if msg.get('caption'):
+                msgtext = msg['caption']
+            else:
+                msgtext = msg['text']
+            self.bot.sendPhoto(self.chosenchannel[2], file_id, "#p{}\n{}".format(postid, msgtext))
+        elif content_type == 'document':
+            if msg.get('caption'):
+                msgtext = msg['caption']
+            else:
+                msgtext = msg['text']
+            self.bot.sendDocument(self.chosenchannel[2], file_id, "#p{}\n{}".format(postid, msgtext))
+        
+        sendmsg = self.sender.sendMessage('Your message was posted on the {} board'.format(self.chosenchannel[1]), reply_markup=keyboards['start'])
+        self.app.store_post(postid, self.chosenchannel[0], sendmsg['message_id'], content_type, msgtext, file_id=file_id)
+        self.status = 'start'
+
     def catchall(self, msg):
         if msg['text'].startswith('@MessageBoardBot '):
             self.handle_command(msg)
             return
 
         if self.status == 'posting':
-            if msg['text'] != '🤐 Cancel Posting 🤐':
-                    postid = self.app.get_post_id()
-                    self.bot.sendMessage(self.chosenchannel[2], '#p'+str(postid)+'\n'+msg['text'])
-                    sendmsg = self.sender.sendMessage('Your message was posted on the {} board'.format(self.chosenchannel[1]), reply_markup = keyboards['start'])
-                    self.app.store_post(postid, self.chosenchannel[0], sendmsg['message_id'], content_type, msg['text'])
-                    self.status = 'start'
-            else:
+            if msg['text'] == '🤐 Cancel Posting 🤐':
                 self.sender.sendMessage('Posting cancelled', reply_markup = keyboards['start'])
+            else:
+                self.post_to_channel(msg)
+        elif self.status.startswith('choosecaption'):
+            self.post_to_channel(msg, self.status[14:], self.file_id)
         else:
             self.sender.sendMessage(self.helptext)
 
