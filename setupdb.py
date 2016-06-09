@@ -14,13 +14,13 @@ if __name__ == "__main__":
 	`ChannelName`	TEXT NOT NULL,
 	`ChannelURL`	TEXT NOT NULL UNIQUE
 );""")
-	c.execute("""CREATE TABLE `Posts_per_Channel` (
+	c.execute("""CREATE TABLE "Posts_per_Channel" (
 	`Post_ID`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
 	`Replyto_ID`	INTEGER,
 	`Channel_ID`	INTEGER NOT NULL,
 	`Message_ID`	INTEGER NOT NULL UNIQUE,
 	`ContentType`	TEXT NOT NULL,
-	`ContentText`	TEXT NOT NULL,
+	`ContentText`	TEXT,
 	`File_ID`	TEXT
 );""")
 	conn.commit()
