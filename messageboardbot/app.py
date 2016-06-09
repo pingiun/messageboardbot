@@ -54,4 +54,11 @@ class App(object):
         self._execute("INSERT INTO Post_per_Channel VALUES (?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, content_type, message_id))
 
     def get_post_id(self):
-        return self._select("SELECT Post_ID FROM Posts_per_Channel ORDER BY Post_ID DESC LIMIT 1;")[0] + 1
+        postid = self.cache.get('postid')
+        if postid:
+            self.cache.set('postid', postid+1)
+            return postid + 1
+        else:
+            postid = self._select("SELECT Post_ID FROM Posts_per_Channel ORDER BY Post_ID DESC LIMIT 1;")[0]
+            self.cache.set('postid', postid + 1)
+            return postid + 1
