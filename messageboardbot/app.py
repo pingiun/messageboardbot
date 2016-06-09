@@ -50,5 +50,8 @@ class App(object):
         else:
             return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Post_ID = ?", (postid,))
 
-    def store_post(self, channel_id, content_type, message_id, replyto_id=None):
-        self._execute("INSERT INTO Post_per_Channel VALUES (?, ?, ?, ?, ?)", (None, replyto_id, channel_id, content_type, message_id))
+    def store_post(self, post_id, channel_id, content_type, message_id, replyto_id=None):
+        self._execute("INSERT INTO Post_per_Channel VALUES (?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, content_type, message_id))
+
+    def get_post_id(self):
+        return self._select("SELECT Post_ID FROM Posts_per_Channel ORDER BY Post_ID DESC LIMIT 1;")[0] + 1
