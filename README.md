@@ -9,7 +9,7 @@ Install telepot with `pip install telepot`
 2. Run the bot with `python bot.py`
 
 ## TODO
-- Actually being able to post posts
+- ~~Actually being able to post posts~~
 - Replying to posts
 - Making other cool things
 - showing commments in bot
