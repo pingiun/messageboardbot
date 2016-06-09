@@ -24,4 +24,4 @@ if __name__ == "__main__":
 	`File_ID`	TEXT
 );""")
 	conn.commit()
-	conn.exit()
+	conn.close()
