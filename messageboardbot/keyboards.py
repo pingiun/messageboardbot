@@ -2,5 +2,6 @@ from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboar
 
 keyboards = {
 	'start': ReplyKeyboardMarkup(keyboard=[['List Channels']]),
-	'chosenchannel': ReplyKeyboardMarkup(keyboard = [['📝 Post 📝','List Channels']])
+	'chosenchannel': ReplyKeyboardMarkup(keyboard=[['📝 Post 📝','List Channels']]),
+	'nocaption': ReplyKeyboardMarkup(keyboard=[['🚫 Don\'t use a caption 🚫']])
 }
