@@ -25,6 +25,7 @@ class App(object):
             c.execute(query, values)
         else:
             c.execute(query)
+        conn.commit()
         conn.close()
 
     def get_channels(self):
@@ -50,15 +51,18 @@ class App(object):
         else:
             return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Post_ID = ?", (postid,))
 
-    def store_post(self, post_id, channel_id, content_type, message_id, replyto_id=None):
-        self._execute("INSERT INTO Post_per_Channel VALUES (?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, content_type, message_id))
+    def store_post(self, post_id, channel_id, message_id, content_type, content_text, replyto_id=None, file_id=None):
+        self._execute("INSERT INTO Posts_per_Channel VALUES (?, ?, ?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, message_id, content_type, content_text, file_id))
 
     def get_post_id(self):
         postid = self.cache.get('postid')
         if postid:
-            self.cache.set('postid', postid+1)
+            self.cache.put('postid', postid+1)
             return postid + 1
         else:
-            postid = self._select("SELECT Post_ID FROM Posts_per_Channel ORDER BY Post_ID DESC LIMIT 1;")[0]
-            self.cache.set('postid', postid + 1)
+            try:
+                postid = self._select("SELECT Post_ID FROM Posts_per_Channel ORDER BY Post_ID DESC LIMIT 1;")[0][0]
+            except IndexError:
+                postid = 0
+            self.cache.put('postid', postid + 1)
             return postid + 1
