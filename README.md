@@ -11,5 +11,6 @@ Install telepot with `pip install telepot`
 ## TODO
 - ~~Actually being able to post posts~~
 - Replying to posts
-- Making other cool things
+- Making other cool things 
+  - ~~gif captions~~
 - showing commments in bot
