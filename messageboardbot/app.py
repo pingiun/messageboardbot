@@ -28,6 +28,20 @@ class App(object):
         conn.commit()
         conn.close()
 
+    def is_admin(self, user_id):
+        admin = self.cache.get('admin_'+user_id)
+        if admin:
+            return True
+        else:
+            admin = self._select("SELECT * FROM Admins WHERE User_ID = ?", (user_id,))
+            if len(admin) == 1:
+                admin = self.cache.get('admin_'+userid)
+                return admin[0][2]
+            elif len(admin) > 1:
+                raise ValueError("More than one entry in Admin table with the same User_ID")
+            else:
+                return False
+        
     def get_channels(self):
         channels = self.cache.get('channels')
         if channels:
@@ -42,7 +56,21 @@ class App(object):
         if channel:
             return channel
         else:
-            return self._select("SELECT * FROM Channels WHERE ChannelName = ?", (name,))
+            channel = self._select("SELECT * FROM Channels WHERE ChannelName = ?", (name,))
+            self.cache.put('channel_'+name, channel)
+            return channel
+
+    def get_channel_byurl(self, url):
+        channel = self.cache.get('chanelurl'+url)
+        if channel:
+            return channel
+        else:
+            channel = self._select("SELECT * FROM Channels WHERE ChannelURL = ?", (url,))
+            self.cache.put('channelurl_'+url, channel)
+            return channel
+
+    def add_channel(self, name, url):
+        self._execute("INSERT INTO Channels VALUES (NULL,?,?)", (name, url))
 
     def get_message(self, post_id):
         postid = self.cache.get('postid_'+postid)
@@ -56,7 +84,9 @@ class App(object):
         if chain:
             return chain
         else:
-            return self._select("SELECT * FROM Post_per_Channel WHERE Replyto_ID = ? LIMIT ?,?", (post_id, offset, offset+10))
+            chain = self._select("SELECT * FROM Post_per_Channel WHERE Replyto_ID = ? LIMIT ?,?", (post_id, offset, offset+10))
+            self.cache.put('chain_{}_{}'.format(post_id, offset), chain)
+            return chain
 
     def store_post(self, post_id, channel_id, message_id, content_type, content_text, replyto_id=None, file_id=None):
         self._execute("INSERT INTO Posts_per_Channel VALUES (?, ?, ?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, message_id, content_type, content_text, file_id))
