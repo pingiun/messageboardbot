@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
   app = App(config['DatabaseFile'])
   bot = telepot.DelegatorBot(config['TelegramToken'], [
-      (per_from_id(), create_open(MessageBoardBot, timeout=20, app=app)),
+      (per_from_id(), create_open(MessageBoardBot, timeout=30, app=app)),
   ])
   print("Listening...")
   bot.message_loop(run_forever=True)
