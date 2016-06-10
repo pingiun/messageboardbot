@@ -73,10 +73,12 @@ class App(object):
     def add_channel(self, name, url):
         self._execute("INSERT INTO Channels VALUES (NULL,?,?)", (name, url))
 
+    def get_message(self, channel_id, message_id):
         postid = self.cache.get('postid_{}_{}'.format(channel_id, post_id))
         if postid:
             return postid
         else:
+            return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Message_ID = ? AND Post_per_Channel.Channel_ID = ?", (message_id, channel_id))
 
     def get_comment_chain(self, post_id, offset=0):
         chain = self.cache.get('chain_{}_{}'.format(postid, offset))
