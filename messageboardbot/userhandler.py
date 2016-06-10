@@ -22,12 +22,13 @@ class MessageBoardBot(telepot.helper.UserHandler):
               (r'List Channels', self.list_channels),
               (r'Channel: (\S.*)', self.channel_info),
               (r'📝 Post 📝', self.post),
+              (r'\/addchannel (@[A-Za-z_]+) (\S.*)', self.admin_add_channel),
               (r'.+', self.catchall)
             ]
         self._router = KeyboardRouter(self.bot, layout, self.on_nontext)
 
         self.on_message = self._router.on_message
-    
+
     def on_nontext(self, msg):
         content_type, chat_type, chat_id = telepot.glance(msg)
         if self.status == 'posting' or self.status == 'replying':
@@ -50,6 +51,14 @@ class MessageBoardBot(telepot.helper.UserHandler):
             self.replytochat = '@'+msg['forward_from_chat']['username']
             self.sender.sendMessage('Now send the reply',reply_markup=ReplyKeyboardMarkup(keyboard = [['🤐 Cancel Posting 🤐', 'Main Menu']]))
             self.status = 'replying'
+        else:
+            self.sender.sendMessage(self.helptext)
+
+    def admin_add_channel(self, msg, url, name):
+        content_type, chat_type, chat_id = telepot.glance(msg)
+        if self.app.is_admin(chat_id):
+            self.app.add_channel(name, url)
+            self.sender.sendMessage("Hi Admin, I added your the Channel to the list.", reply_markup=keyboards['start'])
         else:
             self.sender.sendMessage(self.helptext)
 

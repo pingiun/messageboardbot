@@ -23,5 +23,11 @@ if __name__ == "__main__":
     `ContentText`   TEXT NOT NULL,
     `File_ID`   TEXT
 );""")
+    c.execute("""CREATE TABLE `Admins` (
+	`Admin_ID`	INTEGER NOT NULL UNIQUE,
+	`User_ID`	INTEGER NOT NULL UNIQUE,
+	`Level`	INTEGER NOT NULL DEFAULT 1,
+	PRIMARY KEY(Admin_ID)
+);""")
     conn.commit()
     conn.close()

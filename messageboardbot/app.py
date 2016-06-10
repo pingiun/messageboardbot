@@ -29,17 +29,18 @@ class App(object):
         conn.close()
 
     def is_admin(self, user_id):
-        admin = self.cache.get('admin_'+user_id)
+        admin = self.cache.get('admin_{}'.format(user_id))
         if admin:
             return True
         else:
             admin = self._select("SELECT * FROM Admins WHERE User_ID = ?", (user_id,))
             if len(admin) == 1:
-                admin = self.cache.get('admin_'+userid)
+                self.cache.put('admin_{}'.format(user_id), True)
                 return admin[0][2]
             elif len(admin) > 1:
                 raise ValueError("More than one entry in Admin table with the same User_ID")
             else:
+                self.cache.put('admin_{}'.format(user_id), False)
                 return False
         
     def get_channels(self):
