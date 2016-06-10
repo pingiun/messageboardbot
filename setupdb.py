@@ -18,7 +18,7 @@ if __name__ == "__main__":
     `Post_ID`   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
     `Replyto_ID`    INTEGER,
     `Channel_ID`    INTEGER NOT NULL,
-    `Message_ID`    INTEGER NOT NULL UNIQUE,
+    `Message_ID`    INTEGER NOT NULL,
     `ContentType`   TEXT NOT NULL,
     `ContentText`   TEXT NOT NULL,
     `File_ID`   TEXT
