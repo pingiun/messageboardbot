@@ -51,6 +51,13 @@ class App(object):
         else:
             return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Post_ID = ?", (postid,))
 
+    def get_comment_chain(self, post_id, offset=0):
+        chain = self.cache.get('chain_{}_{}'.format(postid, offset))
+        if chain:
+            return chain
+        else:
+            return self._select("SELECT * FROM Post_per_Channel WHERE Replyto_ID = ? LIMIT ?,?", (post_id, offset, offset+10))
+
     def store_post(self, post_id, channel_id, message_id, content_type, content_text, replyto_id=None, file_id=None):
         self._execute("INSERT INTO Posts_per_Channel VALUES (?, ?, ?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, message_id, content_type, content_text, file_id))
 
