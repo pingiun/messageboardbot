@@ -133,6 +133,16 @@ class App(object):
             self.cache.put('chain_{}_{}'.format(post_id, offset), chain)
             return chain
 
+    def count_comments(self, post_id):
+        """Counts the amount of comments in a thread"""
+        count = self.cache.get('count_{}'.format(post_id))
+        if count:
+            return count
+        else:
+            count = self._select("SELECT COUNT(Post_ID) FROM Posts_per_Channel WHERE Replyto_ID = 14")
+            self.cache.put('count_{}'.format(post_id), count)
+            return count
+
     def store_post(self, post_id, channel_id, message_id, content_type, content_text, replyto_id=None, file_id=None):
         """Store a post"""
         self._execute("INSERT INTO Posts_per_Channel VALUES (?, ?, ?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, message_id, content_type, content_text, file_id))

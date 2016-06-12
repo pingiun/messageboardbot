@@ -26,6 +26,7 @@ class MessageBoardBot(telepot.helper.UserHandler):
               (r'Channel: (\S.*)', self.channel_info),
               (r'📝 Post 📝', self.post),
               (r'↩️ #p([\d]+)', self.reply_to_comment),
+              (r'(?:◀️|▶️) (Next|Prev)', self.prev_next),
               (r'\/addchannel (@[A-Za-z_]+) (\S.*)', self.admin_add_channel),
               (r'.+', self.catchall)
             ]
@@ -138,27 +139,34 @@ class MessageBoardBot(telepot.helper.UserHandler):
         self.status = 'start'
         del self.masterid
 
+    def prev_next(self, msg, btn):
+        self.show_comment_chain(btn.lower())
+
     def show_comment_chain(self, msg):
         if type(msg) == str:
+            postid = self.masterid
             if msg == 'next':
-                pass
+                self.offset = self.offset + 10
             if msg == 'prev':
-                pass
+                self.offset = min(0, self.offset - 10)
+        else:
+            match = re.match('^#p([\d]+)\n', msg['text'])
+            if not match:
+                return False
+            postid = match.group(1)
+            self.offset = 0
 
-        match = re.match('^#p([\d]+)\n', msg['text'])
-        if not match:
-            return False
-        postid = match.group(1)
-        comments = self.app.get_comment_chain(postid)
+        comments = self.app.get_comment_chain(postid, offset=self.offset)
         if comments == []:
             self.sender.sendMessage('There are no comments on this post yet, you can post one now.', reply_markup=ReplyKeyboardMarkup(keyboard = [['🤐 Cancel Posting 🤐', 'Main Menu']]))
             self.replytoid = int(postid)
-            self.chosenchannel = self.app.get_channel_byurl('@'+msg['forward_from_chat']['username'])[0]
+            if not self.chosenchannel:
+                self.chosenchannel = self.app.get_channel_byurl('@'+msg['forward_from_chat']['username'])[0]
             self.status = 'replying'
             return True
         else:
-            keyboard = [[] for _ in range((len(comments)-1)//2+1)]
-            replymsg = "Here are the {} comment(s) for this post:".format(len(comments))
+            keyboard = [[], []]
+            replymsg = "Displaying {}th till {}th of {} comment(s) for this post:".format(self.offset+1, self.offset+10, self.app.count_comments(postid)[0][0])
 
             images = []
 
@@ -169,14 +177,20 @@ class MessageBoardBot(telepot.helper.UserHandler):
                 else:
                     replymsg += "\n\n#p{}\n{}".format(post[0], post[5])
 
-                keyboard[i % ((len(comments)-1)//2+1)].append('↩️ #p{}'.format(post[0]))
+                keyboard[i < 5].append('↩️ #p{}'.format(post[0]))
 
-            keyboard.append(['Main Menu'])
+            if self.offset == 0:
+                keyboard.append(['▶️ Next'])
+            else:
+                keyboard.append(['◀️ Prev', '▶️ Next'])
             
+            keyboard.append(['Main Menu'])
+
             replymsg += "\n\nType now to reply to OP or click any of the keyboard buttons to reply to a comment."
             self.replytoid = int(postid)
             self.masterid = int(postid)
-            self.chosenchannel = self.app.get_channel_byurl('@'+msg['forward_from_chat']['username'])[0]
+            if not self.chosenchannel:
+                self.chosenchannel = self.app.get_channel_byurl('@'+msg['forward_from_chat']['username'])[0]
             self.status = 'replying'
             for i, image in enumerate(images, start=1):
                 self.sender.sendPhoto(image, "Img {}".format(i))
