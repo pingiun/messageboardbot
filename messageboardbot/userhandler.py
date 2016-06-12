@@ -7,6 +7,8 @@ from .keyboards import keyboards
 
 from .router import KeyboardRouter
 
+logger = logging.getLogger()
+
 class MessageBoardBot(telepot.helper.UserHandler):
     def __init__(self, token, timeout, app):
         super(MessageBoardBot, self).__init__(token, timeout)
@@ -14,7 +16,7 @@ class MessageBoardBot(telepot.helper.UserHandler):
 
         self.helptext = "I don't get it mate, press /start to start over."
 
-        self.chosenchannel = 'none'
+        self.chosenchannel = None
         self.status = 'start'
         self.captiontype = 'none'
         layout  = [
@@ -48,7 +50,7 @@ class MessageBoardBot(telepot.helper.UserHandler):
                     self.sender.sendMessage("Now choose a caption to go with your gif.", reply_markup=keyboards['nocaption'])
                     self.captiontype = 'choosecaption_document'
                     self.file_id = msg['document']['file_id']
-        if msg.get('forward_from_chat'):
+        elif msg.get('forward_from_chat'):
             if self.show_comment_chain(msg):
                 return
         else:
@@ -123,7 +125,7 @@ class MessageBoardBot(telepot.helper.UserHandler):
                     msgtext = '>>>#p{}\n{}'.format(self.replytoid, msg['text'])
                 #self.bot.sendDocument(self.replytochat, file_id, "#p{}\n{}".format(postid, msgtext))
             else:
-                NotImplementedError("Incorrect content_type: " + content_type)
+                raise NotImplementedError("Incorrect content_type: " + content_type)
         else:
             raise NotImplementedError("Incorrect status: " + self.status)
 
@@ -154,9 +156,18 @@ class MessageBoardBot(telepot.helper.UserHandler):
         else:
             keyboard = [[] for _ in range((len(comments)-1)//2+1)]
             replymsg = "Here are the {} comment(s) for this post:".format(len(comments))
+
+            images = []
+
             for i, post in enumerate(comments):
+                if post[6]:
+                    images.append(post[6])
+                    replymsg += "\n\n#p{}\n(Img {})\n{}".format(post[0], len(images), post[5])
+                else:
+                    replymsg += "\n\n#p{}\n{}".format(post[0], post[5])
+
                 keyboard[i % ((len(comments)-1)//2+1)].append('↩️ #p{}'.format(post[0]))
-                replymsg += "\n\n#p{}\n{}".format(post[0], post[5])
+
             keyboard.append(['Main Menu'])
             
             replymsg += "\n\nType now to reply to OP or click any of the keyboard buttons to reply to a comment."
@@ -164,6 +175,8 @@ class MessageBoardBot(telepot.helper.UserHandler):
             self.masterid = int(postid)
             self.chosenchannel = self.app.get_channel_byurl('@'+msg['forward_from_chat']['username'])[0]
             self.status = 'replying'
+            for i, image in enumerate(images, start=1):
+                self.sender.sendPhoto(image, "Img {}".format(i))
             self.sender.sendMessage(replymsg, reply_markup=ReplyKeyboardMarkup(keyboard=keyboard))
             return True
 
@@ -175,7 +188,7 @@ class MessageBoardBot(telepot.helper.UserHandler):
             if self.show_comment_chain(msg):
                 return
         if self.captiontype.startswith('choosecaption'):
-            self.post_to_channel(msg, self.status[14:], self.file_id)
+            self.post_to_channel(msg, self.captiontype[14:], self.file_id)
         elif self.status == 'posting':
             if msg['text'] == '🤐 Cancel Posting 🤐':
                 self.sender.sendMessage('Posting cancelled', reply_markup = keyboards['start'])
