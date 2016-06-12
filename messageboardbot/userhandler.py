@@ -82,9 +82,12 @@ class MessageBoardBot(telepot.helper.UserHandler):
         self.status = 'posting'
 
     def reply_to_comment(self, msg, commentid):
-        self.sender.sendMessage('Now send the reply', reply_markup=ReplyKeyboardMarkup(keyboard = [['🤐 Cancel Posting 🤐', 'Main Menu']]))
-        self.replytoid = int(commentid)
-        self.status = 'replying'
+        if not self.masterid:
+            self.sender.sendMessage(self.helptext)
+        else:
+            self.sender.sendMessage('Now send the reply', reply_markup=ReplyKeyboardMarkup(keyboard = [['🤐 Cancel Posting 🤐', 'Main Menu']]))
+            self.replytoid = int(commentid)
+            self.status = 'replying'
 
     def post_to_channel(self, msg, content_type='text', file_id=None):
         postid = self.app.get_post_id()
