@@ -14,7 +14,7 @@ queries = {
     'get_channel_byurl': "SELECT * FROM channels WHERE ChannelURL = ?;",
     'add_channel':       "INSERT INTO channels (channelname, channelurl) VALUES (?, ?);",
     'get_message':       "SELECT * FROM posts_per_channel INNER JOIN channels ON posts_per_channel.channel_id=channels.channel_id WHERE message_id = ? AND posts_per_channel.channel_id = ?;",
-    'get_comment_chain': "SELECT * FROM posts_per_channel WHERE replyto_id = ? LIMIT ?,?;",
+    'get_comment_chain': "SELECT * FROM posts_per_channel WHERE replyto_id = ? LIMIT ? OFFSET ?;",
     'count_comments':    "SELECT COUNT(post_id) FROM posts_per_channel WHERE replyto_id = ?;",
     'store_post':        "INSERT INTO posts_per_channel VALUES (?, ?, ?, ?, ?, ?, ?);",
     'get_post_id':       "SELECT post_ID FROM posts_per_channel ORDER BY post_id DESC LIMIT 1;",
