@@ -151,7 +151,7 @@ class App(object):
         if chain:
             return chain
         else:
-            chain = self._select(queries['get_comment_chain'], (post_id, offset, offset+10))
+            chain = self._select(queries['get_comment_chain'], (post_id, 10, offset))
             self.cache.put('chain_{}_{}'.format(post_id, offset), chain)
             return chain
 
@@ -161,7 +161,7 @@ class App(object):
         if count:
             return count
         else:
-            count = self._select(queries['count_comments'], (postid, ))
+            count = self._select(queries['count_comments'], (post_id, ))
             self.cache.put('count_{}'.format(post_id), count)
             return count
 
