@@ -11,6 +11,6 @@ Install telepot with `pip install telepot`
 ## TODO
 - ~~Actually being able to post posts~~
 - ~~Replying to posts~~ currently showing replies in channel, forward message from channel to the bot to reply
-  - showing commments in bot
+  - ~~showing commments in bot~~
 - Making other cool things 
   - ~~gif captions~~
