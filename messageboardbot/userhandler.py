@@ -17,6 +17,7 @@ class MessageBoardBot(telepot.helper.UserHandler):
         self.helptext = "I don't get it mate, press /start to start over."
 
         self.chosenchannel = None
+        self.masterid = None
         self.status = 'start'
         self.captiontype = 'none'
         layout  = [
