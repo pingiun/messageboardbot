@@ -1,6 +1,28 @@
-import sqlite3
+try:
+    import psycopg2 as db
+    dbtype = 'postgres'
+except ImportError:
+    import sqlite3 as db
+    dbtype = 'sqlite'
 
 from .utils import cache
+
+queries = {
+    'is_admin':          "SELECT * FROM admins WHERE user_id = ?;",
+    'get_channels':      "SELECT * FROM channels;",
+    'get_channel':       "SELECT * FROM channels WHERE channelname = ?;",
+    'get_channel_byurl': "SELECT * FROM channels WHERE ChannelURL = ?;",
+    'add_channel':       "INSERT INTO channels (channelname, channelurl) VALUES (?, ?);",
+    'get_message':       "SELECT * FROM posts_per_channel INNER JOIN channels ON posts_per_channel.channel_id=channels.channel_id WHERE message_id = ? AND posts_per_channel.channel_id = ?;",
+    'get_comment_chain': "SELECT * FROM posts_per_channel WHERE replyto_id = ? LIMIT ?,?;",
+    'count_comments':    "SELECT COUNT(post_id) FROM posts_per_channel WHERE replyto_id = ?;",
+    'store_post':        "INSERT INTO posts_per_channel VALUES (?, ?, ?, ?, ?, ?, ?);",
+    'get_post_id':       "SELECT post_ID FROM posts_per_channel ORDER BY post_id DESC LIMIT 1;",
+}
+
+if dbtype == 'postgres':
+    for key, value in queries.items():
+        queries[key] = value.replace('?', '%s')
 
 class App(object):
     def __init__(self, dbname):
@@ -8,7 +30,7 @@ class App(object):
         self.cache = cache.Cache()
 
     def _select(self, query, values=None):
-        conn = sqlite3.connect(self.dbname)
+        conn = db.connect(self.dbname)
         c = conn.cursor()
         if values:
             c.execute(query, values)
@@ -19,7 +41,7 @@ class App(object):
         return result
 
     def _execute(self, query, values=None):
-        conn = sqlite3.connect(self.dbname)
+        conn = db.connect(self.dbname)
         c = conn.cursor()
         if values:
             c.execute(query, values)
@@ -42,7 +64,7 @@ class App(object):
         if admin:
             return True
         else:
-            admin = self._select("SELECT * FROM Admins WHERE User_ID = ?", (user_id,))
+            admin = self._select(queries['is_admin'], (user_id,))
             if len(admin) == 1:
                 self.cache.put('admin_{}'.format(user_id), admin[0][2])
                 return admin[0][2]
@@ -58,7 +80,7 @@ class App(object):
         if channels:
             return channels
         else:
-            channels = self._select("SELECT * FROM Channels")
+            channels = self._select(queries['get_channels'])
             self.cache.put('channels', channels)
             return channels
 
@@ -74,7 +96,7 @@ class App(object):
         if channel:
             return channel
         else:
-            channel = self._select("SELECT * FROM Channels WHERE ChannelName = ?", (name,))
+            channel = self._select(queries['get_channel'], (name,))
             self.cache.put('channel_'+name, channel)
             return channel
 
@@ -90,7 +112,7 @@ class App(object):
         if channel:
             return channel
         else:
-            channel = self._select("SELECT * FROM Channels WHERE ChannelURL = ?", (url,))
+            channel = self._select(queries['get_channel_byurl'], (url,))
             self.cache.put('channelurl_'+url, channel)
             return channel
 
@@ -102,7 +124,7 @@ class App(object):
             name: The name of the channel
             url: The URL of the channel
         """
-        self._execute("INSERT INTO Channels VALUES (NULL,?,?)", (name, url))
+        self._execute(queries['add_channel'], (name, url))
 
     def get_message(self, channel_id, message_id):
         """Returns a message with channel_id and message_id
@@ -114,7 +136,7 @@ class App(object):
         if postid:
             return postid
         else:
-            return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Message_ID = ? AND Posts_per_Channel.Channel_ID = ?", (message_id, channel_id))
+            return self._select(queries['get_message'], (message_id, channel_id))
 
     def get_comment_chain(self, post_id, offset=0):
         """Returns a comment chain based on a OP post_id
@@ -129,7 +151,7 @@ class App(object):
         if chain:
             return chain
         else:
-            chain = self._select("SELECT * FROM Posts_per_Channel WHERE Replyto_ID = ? LIMIT ?,?", (post_id, offset, offset+10))
+            chain = self._select(queries['get_comment_chain'], (post_id, offset, offset+10))
             self.cache.put('chain_{}_{}'.format(post_id, offset), chain)
             return chain
 
@@ -139,13 +161,13 @@ class App(object):
         if count:
             return count
         else:
-            count = self._select("SELECT COUNT(Post_ID) FROM Posts_per_Channel WHERE Replyto_ID = 14")
+            count = self._select(queries['count_comments'], (postid, ))
             self.cache.put('count_{}'.format(post_id), count)
             return count
 
     def store_post(self, post_id, channel_id, message_id, content_type, content_text, replyto_id=None, file_id=None):
         """Store a post"""
-        self._execute("INSERT INTO Posts_per_Channel VALUES (?, ?, ?, ?, ?, ?, ?)", (post_id, replyto_id, channel_id, message_id, content_type, content_text, file_id))
+        self._execute(queries['store_post'], (post_id, replyto_id, channel_id, message_id, content_type, content_text, file_id))
 
     def get_post_id(self):
         """Get a new ID for a new post"""
@@ -155,7 +177,7 @@ class App(object):
             return postid + 1
         else:
             try:
-                postid = self._select("SELECT Post_ID FROM Posts_per_Channel ORDER BY Post_ID DESC LIMIT 1;")[0][0]
+                postid = self._select(queries['get_post_id'])[0][0]
             except IndexError:
                 postid = 0
             self.cache.put('postid', postid + 1)
