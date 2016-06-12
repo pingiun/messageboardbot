@@ -86,7 +86,7 @@ class App(object):
         Returns:
             A list of size 1 with a channel database row.
         """
-        channel = self.cache.get('chanelurl'+url)
+        channel = self.cache.get('chanelurl_'+url)
         if channel:
             return channel
         else:
@@ -110,11 +110,11 @@ class App(object):
         Returns:
             A list of size 1 with a message row including the channel row.
         """
-        postid = self.cache.get('postid_{}_{}'.format(channel_id, post_id))
+        postid = self.cache.get('postid_{}_{}'.format(channel_id, message_id))
         if postid:
             return postid
         else:
-            return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Message_ID = ? AND Post_per_Channel.Channel_ID = ?", (message_id, channel_id))
+            return self._select("SELECT * FROM Posts_per_Channel INNER JOIN Channels ON Posts_per_Channel.Channel_ID=Channels.Channel_ID WHERE Message_ID = ? AND Posts_per_Channel.Channel_ID = ?", (message_id, channel_id))
 
     def get_comment_chain(self, post_id, offset=0):
         """Returns a comment chain based on a OP post_id
@@ -125,11 +125,11 @@ class App(object):
         Returns:
             The first 10 comments from an offset of `offset`
         """
-        chain = self.cache.get('chain_{}_{}'.format(postid, offset))
+        chain = self.cache.get('chain_{}_{}'.format(post_id, offset), timeout=5)
         if chain:
             return chain
         else:
-            chain = self._select("SELECT * FROM Post_per_Channel WHERE Replyto_ID = ? LIMIT ?,?", (post_id, offset, offset+10))
+            chain = self._select("SELECT * FROM Posts_per_Channel WHERE Replyto_ID = ? LIMIT ?,?", (post_id, offset, offset+10))
             self.cache.put('chain_{}_{}'.format(post_id, offset), chain)
             return chain
 
