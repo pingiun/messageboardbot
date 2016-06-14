@@ -21,8 +21,9 @@ class MessageBoardBot(telepot.helper.UserHandler):
         self.status = 'start'
         self.captiontype = 'none'
         layout  = [
-              (r'\/start|Main Menu', ("Welcome", [['List Channels'],['About']])),
-              (r'About', ("The bot is made by..", [['Main Menu']])),
+              (r'\/start|Main Menu', ("Welcome", keyboards['start'])),
+              (r'/help|❓ Help ❓', self.get_help),
+              (r'About', ("The bot is made by Jelle Besseling (@pingiun) and Marijn Besseling (@Besselking).\nHosted by the generous people at @bothosting.", [['Main Menu']])),
               (r'List Channels', self.list_channels),
               (r'Channel: (\S.*)', self.channel_info),
               (r'📝 Post 📝', self.post),
@@ -65,6 +66,18 @@ class MessageBoardBot(telepot.helper.UserHandler):
             self.sender.sendMessage("Hi Admin, I added your the Channel to the list.", reply_markup=keyboards['start'])
         else:
             self.sender.sendMessage(self.helptext)
+
+    def get_help(self, msg):
+        content_type, chat_type, chat_id = telepot.glance(msg)
+        if self.app.is_admin(chat_id):
+            self.sender.sendMessage("""This bot will allow you to post messages to different channels. To see which channels you can post to press the List Channels button. In these channels you can post something and others can reply to you.
+To reply to a post you have to forward it from the channel to this bot. The bot will then show you the replies, and you can reply yourself too. More features will come soon.
+
+Admins can use some special commands:
+/addchannel @url Name""", reply_markup=keyboards['start'])
+        else:
+            self.sender.sendMessage("""This bot will allow you to post messages to different channels. To see which channels you can post to press the List Channels button. In these channels you can post something and others can reply to you.
+To reply to a post you have to forward it from the channel to this bot. The bot will then show you the replies, and you can reply yourself too. More features will come soon.""", reply_markup=keyboards['start'])
 
     def list_channels(self, msg):
         keyboard = [['Channel: ' + row[1]] for row in self.app.get_channels()]
