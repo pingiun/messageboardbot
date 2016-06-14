@@ -43,7 +43,10 @@ class KeyboardRouter(object):
                         value(msg)
                         return
                 else:
-                    self._bot.sendMessage(chat_id, value[0], reply_markup=ReplyKeyboardMarkup(keyboard=value[1]))
+                    if type(value[1]) is ReplyKeyboardMarkup:
+                        self._bot.sendMessage(chat_id, value[0], reply_markup=value[1])
+                    else:
+                        self._bot.sendMessage(chat_id, value[0], reply_markup=ReplyKeyboardMarkup(keyboard=value[1]))
                     return
 
         raise LookupError("Could not found a match for message text {}, please include a catch all match.".format(msg[text]))
