@@ -2,6 +2,7 @@
 
 import configparser
 import sys
+import logging
 
 import telepot
 from telepot.delegate import per_from_id, create_open
@@ -9,6 +10,8 @@ from telepot.delegate import per_from_id, create_open
 from messageboardbot.app import App
 from messageboardbot.userhandler import MessageBoardBot
 
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 if __name__ == '__main__':
     configfile = configparser.ConfigParser()
     configfile.read('config.ini')
