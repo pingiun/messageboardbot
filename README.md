@@ -14,3 +14,6 @@ Install telepot with `pip install telepot`
   - ~~showing commments in bot~~
 - Making other cool things 
   - ~~gif captions~~
+
+## Licence
+All code is licenced under the MIT licence, images are under copyright by Jelle Besseling.
