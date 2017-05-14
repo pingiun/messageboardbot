@@ -44,25 +44,25 @@ if __name__ == "__main__":
     else:
         conn = sqlite3.connect(sys.argv[1])
         c = conn.cursor()
-        c.execute("""CREATE TABLE "Channels" (
-        `Channel_ID`    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-        `ChannelName`   TEXT NOT NULL,
-        `ChannelURL`    TEXT NOT NULL UNIQUE
+        c.execute("""CREATE TABLE "channels" (
+        `channel_id`    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        `channelname`   TEXT NOT NULL,
+        `channelurl`    TEXT NOT NULL UNIQUE
         );""")
-        c.execute("""CREATE TABLE `Posts_per_Channel` (
-        `Post_ID`       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-        `Replyto_ID`    INTEGER,
-        `Channel_ID`    INTEGER NOT NULL,
-        `Message_ID`    INTEGER NOT NULL,
-        `ContentType`   TEXT NOT NULL,
-        `ContentText`   TEXT NOT NULL,
-        `File_ID`       TEXT
+        c.execute("""CREATE TABLE `posts_per_channel` (
+        `post_id`       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+        `replyto_id`    INTEGER,
+        `channel_id`    INTEGER NOT NULL,
+        `message_id`    INTEGER NOT NULL,
+        `contenttype`   TEXT NOT NULL,
+        `contenttext`   TEXT NOT NULL,
+        `file_id`       TEXT
         );""")
-        c.execute("""CREATE TABLE `Admins` (
-        `Admin_ID`  INTEGER NOT NULL UNIQUE,
-        `User_ID` INTEGER NOT NULL UNIQUE,
-        `Level` INTEGER NOT NULL DEFAULT 1,
-        PRIMARY KEY(Admin_ID)
+        c.execute("""CREATE TABLE `admins` (
+        `admin_id`  INTEGER NOT NULL UNIQUE,
+        `user_id` INTEGER NOT NULL UNIQUE,
+        `level` INTEGER NOT NULL DEFAULT 1,
+        PRIMARY KEY(admin_id)
         );""")
         conn.commit()
         conn.close()
